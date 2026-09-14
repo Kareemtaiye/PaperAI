@@ -34,12 +34,13 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: paperai_db
     ports:
-      - "5432:5432"
+      - "5435:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # - ./migrations:/docker-entrypoint-initdb.d # Initialize the db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d app_db"]
+      test: ["CMD-SHELL", "pg_isready -U user -d paperai_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -48,7 +49,12 @@ services:
     image: redis:7
     container_name: paperai_redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     # restart: always
 
   celery_worker:
