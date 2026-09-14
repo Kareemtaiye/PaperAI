@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    container_name: fastapi_app
+    container_name: paperai_app
     ports:
       - "8000:8000"
     depends_on:
@@ -9,34 +9,35 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-    environment: #Will use seperate redis services in production for then
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_CACHE_URL=${REDIS_CACHE_URL}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - ENV=${ENV}
-      - PROD_DATABASE_URL=${PROD_DATABASE_URL}
+      # migrate:
+      #   condition: service_completed_successfully
+    # environment:
+    #   - DATABASE_URL=${DATABASE_URL}
+    #   - REDIS_CACHE_URL=${REDIS_CACHE_URL}
+    #   - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+    #   - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    #   - ENV=${ENV}
+    #   - PROD_DATABASE_URL=${PROD_DATABASE_URL}
     env_file:
       - .env
     volumes:
       - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
+    # command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload
 
   postgres:
     image: postgres:15
-    container_name: postgres_db
+    container_name: paperai_postgres
     restart: always
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: app_db
+      POSTGRES_DB: paperai_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d # Initialize the db
+      # - ./migrations:/docker-entrypoint-initdb.d # Initialize the db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d app_db"]
       interval: 5s
@@ -45,12 +46,20 @@ services:
 
   redis:
     image: redis:7
-    container_name: redis_cache
+    container_name: paperai_redis
     ports:
       - "6379:6379"
-    restart: always
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+    # restart: always
+
+  celery_worker:
+    build: .
+    container_name: paperai_worker
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - .env
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=info
+
+volumes:
+  postgres_data:
