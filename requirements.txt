@@ -8,3 +8,5 @@ python-dotenv
 psycopg2-binary
 celery
 redis
+pyjwt
+pwdlib
