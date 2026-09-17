@@ -1,14 +1,21 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from fastapi.security import OAuth2PasswordRequestForm
-from h11 import Response
+from app.db.session import get_db
+from app.schemas.auth import RegisterInput
+from app.services.auth_service import AuthService
+
+service = AuthService()
 
 router = APIRouter(prefix="/auth")
 
 
-@router.get("/register")
-async def create_user(): ...
+@router.post("/register")
+async def create_user(user: RegisterInput, db=Depends(get_db)):
+    user = await service.register(db=db, user=user)
+
+    return {"data": "created"}
 
 
 @router.post("/token", tags=["token"])
