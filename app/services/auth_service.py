@@ -1,14 +1,14 @@
 from app.repositories.auth_repo import AuthRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.schemas.auth import UserLoginInput
+from app.schemas.auth import RegisterInput
 
 
 class AuthService:
     def __init__(self):
         self.repo = AuthRepository()
 
-    async def register(self, db: AsyncSession, user: UserLoginInput):
+    async def register(self, db: AsyncSession, user: RegisterInput):
         return await self.repo.create_user(db=db, user=user)
 
     async def find_user_by_email(self, db: AsyncSession, email: str):
