@@ -2,12 +2,11 @@ from pydantic import UUID1, BaseModel
 
 
 class BaseUser(BaseModel):
-    full_name: str
     email: str
 
 
 class UserLoginInput(BaseUser):
-    password: str
+    password_hash: str
 
 
 class UserLoginOuput(BaseUser):
@@ -15,3 +14,5 @@ class UserLoginOuput(BaseUser):
     role: str = "user"
     email_verified: bool
     is_demo: bool
+    created_at: str
+    updated_at: str
