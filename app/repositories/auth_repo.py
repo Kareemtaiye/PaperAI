@@ -3,14 +3,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.user import User
-from app.schemas.auth import UserLoginInput
+from app.schemas.auth import RegisterInput
 
 
 class AuthRepository:
-    async def create_user(self, db: AsyncSession, user: UserLoginInput):
-        db.add(user)
+    async def create_user(self, db: AsyncSession, user: RegisterInput):
+        new_user = User(email=user.email, password_hash=user.password)
+        db.add(new_user)
         await db.commit()
-        await db.refresh(user)
+        await db.refresh(new_user)
         return user
 
     async def find_user_by_email(aelf, db: AsyncSession, email: str):
