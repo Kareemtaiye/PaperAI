@@ -1,12 +1,17 @@
-from pydantic import UUID1, BaseModel
+from pydantic import UUID1, BaseModel, EmailStr
 
 
 class BaseUser(BaseModel):
     email: str
 
 
-class UserLoginInput(BaseUser):
-    password_hash: str
+class RegisterInput(BaseUser):
+    password: str
+
+
+class UserLoginInput(BaseModel):
+    username: EmailStr
+    password: str
 
 
 class UserLoginOuput(BaseUser):
