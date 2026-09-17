@@ -10,3 +10,6 @@ celery
 redis
 pyjwt
 pwdlib
+asyncpg
+python-multipart
+email-validator
