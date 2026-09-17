@@ -57,15 +57,15 @@ services:
       retries: 5
     # restart: always
 
-  celery_worker:
-    build: .
-    container_name: paperai_worker
-    depends_on:
-      - postgres
-      - redis
-    env_file:
-      - .env
-    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=info
+  # celery_worker:
+  #   build: .
+  #   container_name: paperai_worker
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #   env_file:
+  #     - .env
+  #   command: celery -A app.tasks.celery_app.celery_app worker --loglevel=info
 
 volumes:
   postgres_data:
