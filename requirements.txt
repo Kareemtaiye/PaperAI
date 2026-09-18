@@ -9,7 +9,7 @@ psycopg2-binary
 celery
 redis
 pyjwt
-pwdlib
+pwdlib[argon2]
 asyncpg
 python-multipart
 email-validator
