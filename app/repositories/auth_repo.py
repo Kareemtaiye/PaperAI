@@ -7,11 +7,11 @@ from app.schemas.auth import RegisterInput
 
 
 class AuthRepository:
-    async def create_user(self, db: AsyncSession, user: RegisterInput):
-        new_user = User(email=user.email, password_hash=user.password)
-        db.add(new_user)
+    async def create_user(self, db: AsyncSession, data: dict):
+        user = User(**data)
+        db.add(user)
         await db.commit()
-        await db.refresh(new_user)
+        await db.refresh(user)
         return user
 
     async def find_user_by_email(aelf, db: AsyncSession, email: str):
