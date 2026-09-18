@@ -1,8 +1,11 @@
-from pydantic import UUID1, BaseModel, EmailStr
+from datetime import datetime
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class BaseUser(BaseModel):
-    email: str
+    email: EmailStr
 
 
 class RegisterInput(BaseUser):
@@ -14,10 +17,18 @@ class UserLoginInput(BaseModel):
     password: str
 
 
-class UserLoginOuput(BaseUser):
-    id: str | UUID1
+class UserOuput(BaseUser):
+    id: str | UUID
     role: str = "user"
     email_verified: bool
     is_demo: bool
-    created_at: str
-    updated_at: str
+    created_at: str | datetime
+    updated_at: str | datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserResponse(BaseModel):
+    status: str
+    message: str | None = None
+    data: UserOuput
