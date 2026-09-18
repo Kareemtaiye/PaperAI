@@ -12,7 +12,7 @@ class RegisterInput(BaseUser):
     password: str
 
 
-class UserLoginInput(BaseModel):
+class LoginInput(BaseModel):
     username: EmailStr
     password: str
 
