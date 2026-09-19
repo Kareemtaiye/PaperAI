@@ -3,7 +3,7 @@ from pwdlib import PasswordHash
 import jwt
 from app.core.config import settings
 
-oauth_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/token")
+oauth_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 password_hash = PasswordHash.recommended()
 
@@ -22,5 +22,5 @@ def generate_access_token(user_id: str):
     return jwt.encode({"payload": user_id}, settings.secret_key, algorithm="HS256")
 
 
-def verify_access_token(token: str):
+def verify_jwt(token: str):
     return jwt.decode(token, settings.secret_key, algorithm="HS256")
