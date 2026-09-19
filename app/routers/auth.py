@@ -1,3 +1,4 @@
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -20,7 +21,7 @@ async def create_user(user: RegisterInput, db=Depends(get_db)):
 
 
 @router.post("/token", tags=["token"])
-async def login(
+async def token(
     # response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(OAuth2PasswordRequestForm),
     db=Depends(get_db),
@@ -48,4 +49,9 @@ async def login(
     }
 
 
-# if not form_data.username or
+@router.post("/refresh", tags=["refresh"])
+async def refresh(): ...
+
+
+@router.post("/logout", tags="logout")
+async def logout(): ...
