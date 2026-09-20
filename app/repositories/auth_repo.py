@@ -3,7 +3,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.user import User
-from app.schemas.auth import RegisterInput
 
 
 class AuthRepository:
