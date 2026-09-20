@@ -1,13 +1,18 @@
 from app.core.security import (
     DUMMY_HASH,
     generate_access_token,
+    generate_refresh_token,
     hash_password,
+    hash_token,
     verify_password,
 )
 from app.repositories.auth_repo import AuthRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.auth import LoginInput, RegisterInput
+from app.services.token_service import TokenService
+
+token_service = TokenService()
 
 
 class AuthService:
@@ -42,8 +47,22 @@ class AuthService:
         if not verify_password(user_data.password, user.password_hash):
             return None
 
-        # Create session later
-
         access_token = generate_access_token(str(user.id))
+        refresh_token = generate_refresh_token()
+        # Create session later
+        try:
+            await token_service.create_refresh_token(
+                db=db, user_id=user.id, token_hash=hash_token(refresh_token)
+            )
+
+        except Exception as exc:
+            raise exc
+
         # refresh token later - for managing Session later
-        return access_token
+        return access_token, refresh_token
+
+    # async def rotate_refresh_token(self, db: AsyncSession, token: str):
+    #     token = await token_service.get_refresh_token_by_token(db, token)
+
+    #     if not token:
+    #         return None
