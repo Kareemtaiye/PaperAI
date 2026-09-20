@@ -1,3 +1,6 @@
+import hashlib
+import secrets
+
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
 import jwt
@@ -24,3 +27,11 @@ def generate_access_token(user_id: str):
 
 def verify_jwt(token: str):
     return jwt.decode(token, settings.secret_key, algorithm="HS256")
+
+
+def generate_refresh_token():
+    return secrets.token_hex(64)
+
+
+def hash_token(token: str):
+    return hashlib.sha256(token.encode()).hexdigest()
