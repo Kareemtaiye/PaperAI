@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 import hashlib
 import secrets
 
@@ -21,12 +22,18 @@ def verify_password(password: str, hash: str):
     return password_hash.verify(password, hash)
 
 
-def generate_access_token(user_id: str):
-    return jwt.encode({"payload": user_id}, settings.secret_key, algorithm="HS256")
+def generate_access_token(data: str):
+    expiry_time = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.access_token_expire_minutes
+    )
+
+    payload = {"sub": data, "exp": expiry_time}
+
+    return jwt.encode({"sub": data}, settings.secret_key, algorithm="HS256")
 
 
 def verify_jwt(token: str):
-    return jwt.decode(token, settings.secret_key, algorithm="HS256")
+    return jwt.decode(token, settings.secret_key, algorithms=["HS256"])
 
 
 def generate_refresh_token():
