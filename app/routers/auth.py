@@ -1,8 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from app.core.security import generate_access_token, generate_refresh_token, hash_token
 from app.db.session import get_db
@@ -39,12 +36,10 @@ async def token(
         # logger warning
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=jsonable_encoder(
-                ErrorResponse(
-                    status="error",
-                    message="Invalid credentials",
-                    code=status.HTTP_400_BAD_REQUEST,
-                )
+            detail=ErrorResponse(
+                status="error",
+                message="Invalid credentials",
+                code=status.HTTP_400_BAD_REQUEST,
             ),
         )
 
@@ -69,12 +64,10 @@ async def rotate_refresh_token(
     if not refresh_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=jsonable_encoder(
-                ErrorResponse(
-                    status="error",
-                    code=status.HTTP_401_UNAUTHORIZED,
-                    message="No refresh token provided",
-                )
+            detail=ErrorResponse(
+                status="error",
+                code=status.HTTP_401_UNAUTHORIZED,
+                message="No refresh token provided",
             ),
         )
 
@@ -84,12 +77,10 @@ async def rotate_refresh_token(
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=jsonable_encoder(
-                ErrorResponse(
-                    status="error",
-                    code=status.HTTP_401_UNAUTHORIZED,
-                    message="Invalid Refresh token",
-                )
+            detail=ErrorResponse(
+                status="error",
+                code=status.HTTP_401_UNAUTHORIZED,
+                message="Invalid Refresh token",
             ),
         )
 
@@ -98,24 +89,20 @@ async def rotate_refresh_token(
         await token_service.revoke_user_refresh_tokens(db=db, user_id=token.user_id)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=jsonable_encoder(
-                ErrorResponse(
-                    status="error",
-                    message="Security alert. Please log in again",
-                    code=status.HTTP_401_UNAUTHORIZED,
-                )
+            detail=ErrorResponse(
+                status="error",
+                message="Security alert. Please log in again",
+                code=status.HTTP_401_UNAUTHORIZED,
             ),
         )
 
     if token.expires_at < datetime.now(timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=jsonable_encoder(
-                ErrorResponse(
-                    status="error",
-                    message="Refresh token expired",
-                    code=status.HTTP_401_UNAUTHORIZED,
-                )
+            detail=ErrorResponse(
+                status="error",
+                message="Refresh token expired",
+                code=status.HTTP_401_UNAUTHORIZED,
             ),
         )
 
