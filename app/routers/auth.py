@@ -59,10 +59,7 @@ async def token(
         path="/",
     )
 
-    return {
-        "status": "success",
-        "data": {"access_token": access_token, "token_type": "bearer"},
-    }
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/refresh", tags=["refresh"])
@@ -157,7 +154,7 @@ async def logout(
     db=Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    if refresh_token:
+    if not refresh_token:
         return {"message": "Already logged out"}
 
     await token_service.revoke_refresh_token(db=db, token=refresh_token)
