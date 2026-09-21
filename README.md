@@ -5,7 +5,7 @@ relationships between ML research papers — powered by Google Gemini.
 
 ## Architecture Overview
 
-![Phase 1 Architecture](docs/architecture/phase1.png)
+![Phase 1 Architecture](assets/phase_1.png)
 
 ## Architectural Evolution
 
