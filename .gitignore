@@ -10,3 +10,4 @@ dump.rdb
 .devcontainer
 .pytest_cache
 .vscode/
+*.txt
