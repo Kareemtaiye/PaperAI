@@ -12,7 +12,7 @@ from app.services.token_service import TokenService
 service = AuthService()
 token_service = TokenService()
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/register", response_model=UserResponse, response_model_exclude_none=True)
@@ -22,7 +22,7 @@ async def create_user(user: RegisterInput, db=Depends(get_db)):
     return {"status": "success", "data": user}
 
 
-@router.post("/token", tags=["token"])
+@router.post("/token")
 async def token(
     response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(OAuth2PasswordRequestForm),
@@ -57,7 +57,7 @@ async def token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/refresh", tags=["refresh"])
+@router.post("/refresh")
 async def rotate_refresh_token(
     response: Response, refresh_token: str = Cookie(), db=Depends(get_db)
 ):
@@ -134,7 +134,7 @@ async def rotate_refresh_token(
     return {"access_token": new_access_token, "token_type": "bearer"}
 
 
-@router.post("/logout", tags=["logout"])
+@router.post("/logout")
 async def logout(
     response: Response,
     refresh_token: str = Cookie(),

@@ -1,14 +1,10 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Body, Depends, Response, status
+from fastapi import APIRouter, Depends, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from app.db.session import get_db
 from app.dependencies.user import get_current_user
-from app.schemas import paper
 from app.schemas.paper import PaperManualCreate, PaperResponse
-from app.schemas.response import ErrorResponse
 from app.services.paper_service import PaperService
 from app.utils.mappers import build_paper_response
 
@@ -51,7 +47,7 @@ async def get_all_user_papers(
     return JSONResponse(jsonable_encoder({"status": "success", "data": data}))
 
 
-@router.get("/{paper_id}", response_model=PaperResponse)
+@router.get("/{paper_id}")
 async def get_user_paper(
     paper_id: str,
     db=Depends(get_db),
@@ -68,14 +64,12 @@ async def get_user_paper(
     )
 
 
-@router.delete("/{paper_id}", response_model=PaperResponse)
+@router.delete("/{paper_id}")
 async def delete_user_paper(
     paper_id: str,
     db=Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    Paper = await service.delete_user_paper(
-        db=db, user_id=current_user.id, paper_id=paper_id
-    )
+    await service.delete_user_paper(db=db, user_id=current_user.id, paper_id=paper_id)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
