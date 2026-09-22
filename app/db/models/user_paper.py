@@ -35,3 +35,4 @@ class UserPaper(Base):
     # relationships
     user = relationship("User", back_populates="user_papers")
     paper = relationship("Paper", back_populates="user_papers")
+    task = relationship("Task", back_populates="user_papers")
