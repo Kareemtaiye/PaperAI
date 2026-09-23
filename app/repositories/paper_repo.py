@@ -1,12 +1,13 @@
 from uuid import UUID
-
+from celery import result
 from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
-
 from app.db.models.paper import Paper
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.db.models.user_paper import UserPaper
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+from app.routers import paper
 
 
 class PaperRepostiory:
@@ -53,3 +54,17 @@ class PaperRepostiory:
         await db.commit()
         deleted = result.fetchone()
         return delete is not None
+
+    async def create_paper_import(
+        self, db: AsyncSession, source_id: str, source_url: str, source: str
+    ):
+        stmt = (
+            pg_insert(Paper)
+            .values(source_id=source_id, source_url=source_url, source=source)
+            .on_conflict_do_nothing(constraint="uq_paper_source_id_source")
+        )
+        await db.execute(stmt)
+        await db.commit()
+
+        result = await db.execute(select(Paper).where(Paper.source_id == source_id))
+        return result.scalar_one_or_none()
