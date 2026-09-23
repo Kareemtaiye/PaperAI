@@ -49,7 +49,7 @@ services:
     image: redis:7
     container_name: paperai_redis
     ports:
-      - "6380:6379"
+      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -57,15 +57,15 @@ services:
       retries: 5
     # restart: always
 
-  # celery_worker:
-  #   build: .
-  #   container_name: paperai_worker
-  #   depends_on:
-  #     - postgres
-  #     - redis
-  #   env_file:
-  #     - .env
-  #   command: celery -A app.tasks.celery_app.celery_app worker --loglevel=info
+  celery_worker:
+    build: .
+    container_name: paperai_worker
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - .env
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=info
 
 volumes:
   postgres_data:
