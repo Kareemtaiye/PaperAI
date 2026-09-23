@@ -13,8 +13,8 @@ class Settings(BaseSettings):
 
     gemini_api_key: str = ""
     resend_api_key: str = ""
-    from_email: str = "noreply@send.kareemtaiye.com"
-    app_name: str = "PaperAI"
+    from_email: str
+    app_name: str
     debug: bool = False
 
     class Config:
