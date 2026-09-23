@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, Integer, text
+from sqlalchemy import Column, String, DateTime, Integer, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 from app.db.base import Base
@@ -9,7 +9,8 @@ class Paper(Base):
     __tablename__ = "papers"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    arxiv_id = Column(String, unique=True, nullable=True, index=True)
+    source_id = Column(String, nullable=True, index=True)
+    source_url = Column(String, nullable=True)
     title = Column(String, nullable=True)
     abstract = Column(String, nullable=True)
     authors = Column(ARRAY(String), nullable=True)
@@ -22,7 +23,6 @@ class Paper(Base):
         DateTime(timezone=True), server_default=text("now()"), onupdate=text("now()")
     )
 
-    # relationships
     user_papers = relationship(
         "UserPaper", back_populates="paper", cascade="all, delete-orphan"
     )
@@ -37,4 +37,8 @@ class Paper(Base):
         "PaperRelationship",
         foreign_keys="PaperRelationship.target_paper_id",
         back_populates="target_paper",
+    )
+
+    __table_args__ = (
+        UniqueConstraint("source_id", "source", name="uq_paper_source_id_source"),
     )
