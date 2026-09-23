@@ -13,3 +13,6 @@ pwdlib[argon2]
 asyncpg
 python-multipart
 email-validator
+celery
+redis
+httpx
