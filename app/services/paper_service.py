@@ -51,3 +51,10 @@ class PaperService:
 
         if not paper:
             raise PaperNotFoundException(paper_id)
+
+    async def create_paper_import(
+        self, db: AsyncSession, source_id: str, source_url: str, source: str
+    ):
+        return await self.repo.create_paper_import(
+            db=db, source=source, source_url=source_url, source_id=source_id
+        )
