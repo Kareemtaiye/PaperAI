@@ -29,7 +29,7 @@ class AuthService:
         user = await self.repo.find_user_by_email(db=db, email=email)
 
         if not user:
-            return None  # --- im raising UserNotFoundException later
+            return None
 
         return user
 
@@ -60,9 +60,3 @@ class AuthService:
 
         # refresh token later - for managing Session later
         return access_token, refresh_token
-
-    # async def rotate_refresh_token(self, db: AsyncSession, token: str):
-    #     token = await token_service.get_refresh_token_by_token(db, token)
-
-    #     if not token:
-    #         return None
