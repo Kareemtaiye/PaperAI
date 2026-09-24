@@ -27,5 +27,5 @@ class Digest(Base):
 
     user = relationship(
         "User",
-        back_populates="digest",
+        back_populates="digests",
     )
