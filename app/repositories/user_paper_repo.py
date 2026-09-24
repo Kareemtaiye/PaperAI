@@ -1,7 +1,5 @@
 from uuid import UUID
-
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.db.models.user_paper import UserPaper
 
 
