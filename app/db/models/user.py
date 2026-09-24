@@ -23,10 +23,12 @@ class User(Base):
     user_papers = relationship(
         "UserPaper", back_populates="user", cascade="all, delete-orphan"
     )
-    digest = relationship("Digest", back_populates="user", cascade="all, delete-orphan")
+    digests = relationship(
+        "Digest", back_populates="user", cascade="all, delete-orphan"
+    )
 
     refresh_tokens = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
     )
 
-    task = relationship("Task", back_populates="user", cascade="all, delete-orphan")
+    tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
