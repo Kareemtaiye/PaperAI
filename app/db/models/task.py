@@ -1,7 +1,7 @@
 import uuid
 
 from sqlalchemy import Column, ForeignKey, Integer, Enum, DateTime, String, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 
@@ -27,6 +27,7 @@ class Task(Base):
     stage_message = Column(String, nullable=True)
     error = Column(String, nullable=True)
     worker_name = Column(String, nullable=True)
+    stage_durations = Column(JSONB, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=text("now()"))
     updated_at = Column(
         DateTime(timezone=True), server_default=text("now()"), onupdate=text("now()")
