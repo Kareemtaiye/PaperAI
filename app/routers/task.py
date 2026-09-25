@@ -25,3 +25,29 @@ async def get_task(
             {"status": "success", "data": TaskResponse.model_validate(task)}
         )
     )
+
+
+# @router.get("/")
+# async def get_all_tasks(db=Depends(get_db), current_user=Depends(get_current_user)):
+#     result = await db.execute(
+#         select(Task)
+#         .where(Task.user_id == current_user.id)
+#         .order_by(Task.created_at.desc())
+#     )
+#     tasks = result.scalars().all()
+
+#     return {
+#         "status": "success",
+#         "data": [
+#             {
+#                 "task_id": str(t.id),
+#                 "task_type": t.task_type,
+#                 "status": t.status,
+#                 "progress": t.progress,
+#                 "stage_message": t.stage_message,
+#                 "created_at": t.created_at,
+#                 "completed_at": t.completed_at,
+#             }
+#             for t in tasks
+#         ],
+#     }
