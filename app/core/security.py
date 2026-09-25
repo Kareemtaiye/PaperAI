@@ -42,3 +42,16 @@ def generate_refresh_token():
 
 def hash_token(token: str):
     return hashlib.sha256(token.encode()).hexdigest()
+
+
+def verify_websocket_token(token: str, user_id: str):
+    """
+    Validates JWT token for WebSocket connection.
+    Returns True if valid and belongs to user_id.
+    Returns False otherwise.
+    """
+
+    payload = verify_jwt(token)
+    token_user_id = payload.get("sub")
+
+    return token_user_id == user_id
