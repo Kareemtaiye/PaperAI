@@ -1,42 +1,16 @@
+from datetime import datetime
+import time
+
 import httpx
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert
-
 from app.tasks.celery_app import celery_app
 from app.db.session import get_sync_db
 from app.db.models.paper import Paper
-from app.db.models.user_paper import UserPaper
-from app.db.models.task import Task
+from app.tasks.helpers import publish_task_status, update_task, update_user_paper
 
 ARXIV_API = "https://export.arxiv.org/api/query"
 NAMESPACE = {"atom": "http://www.w3.org/2005/Atom"}
-
-
-def update_task(db, task_id, status, progress, stage, stage_message, error=None):
-    task = db.execute(select(Task).where(Task.id == task_id)).scalar_one_or_none()
-    if not task:
-        return
-    task.status = status
-    task.progress = progress
-    task.stage = stage
-    task.stage_message = stage_message
-    if error:
-        task.error = error
-    if status in ("completed", "failed"):
-        task.completed_at = datetime.now(timezone.utc)
-    db.commit()
-
-
-def update_user_paper(db, user_paper_id, status):
-    user_paper = db.execute(
-        select(UserPaper).where(UserPaper.id == user_paper_id)
-    ).scalar_one_or_none()
-    if not user_paper:
-        return
-    user_paper.status = status
-    db.commit()
 
 
 @celery_app.task(
@@ -46,21 +20,74 @@ def import_arxiv_paper(
     self, paper_id: str, user_paper_id: str, task_id: str, arxiv_id: str, owner_id: str
 ):
     db = get_sync_db()
+    task_start = time.time()
     try:
         # Stage 1 — started
-        update_task(db, task_id, "processing", 10, "fetching", "Fetching from Arxiv...")
+        stage_start = time.time()
+        update_task(
+            db,
+            task_id,
+            owner_id,
+            "processing",
+            10,
+            "fetching",
+            "Fetching from Arxiv...",
+            stage_durations={},
+        )
+
+        publish_task_status(
+            owner_id,
+            {
+                "event": "task_update",
+                "task_id": task_id,
+                "paper_id": paper_id,
+                "status": "processing",
+                "progress": 10,
+                "stage": "fetching",
+                "stage_message": "Fetching from Arxiv...",
+                "elapsed_seconds": round(time.time() - task_start, 2),
+            },
+        )
+
         update_user_paper(db, user_paper_id, "processing")
 
         # Stage 2 — fetch from Arxiv
+        stage_start = time.time()
         response = httpx.get(
             ARXIV_API,
             params={"id_list": arxiv_id, "max_results": 1},
             timeout=30.0,
             follow_redirects=True,
         )
+        fetch_duration = round(time.time() - stage_start, 2)
         response.raise_for_status()
 
-        update_task(db, task_id, "processing", 40, "parsing", "Parsing metadata...")
+        stage_start = time.time()
+        update_task(
+            db,
+            task_id,
+            owner_id,
+            "processing",
+            40,
+            "parsing",
+            "Parsing metadata...",
+            stage_durations={"fetching": fetch_duration},
+        )
+
+        publish_task_status(
+            owner_id,
+            {
+                "event": "task_update",
+                "task_id": task_id,
+                "paper_id": paper_id,
+                "status": "processing",
+                "progress": 40,
+                "stage": "parsing",
+                "stage_message": "Parsing metadata...",
+                "elapsed_seconds": round(time.time() - task_start, 2),
+                "stage_durations": {"fetching": fetch_duration},
+            },
+        )
 
         # Stage 3 — parse XML
         root = ET.fromstring(response.text)
@@ -70,6 +97,7 @@ def import_arxiv_paper(
             update_task(
                 db,
                 task_id,
+                owner_id,
                 "failed",
                 0,
                 "failed",
@@ -94,8 +122,37 @@ def import_arxiv_paper(
         ]
 
         published_at = datetime.fromisoformat(published.replace("Z", "+00:00"))
+        parse_duration = round(time.time() - stage_start, 2)
 
-        update_task(db, task_id, "processing", 70, "saving", "Saving to database...")
+        stage_start = time.time()
+        update_task(
+            db,
+            task_id,
+            owner_id,
+            "processing",
+            70,
+            "saving",
+            "Saving to database...",
+            stage_durations={"fetching": fetch_duration, "parsing": parse_duration},
+        )
+
+        publish_task_status(
+            owner_id,
+            {
+                "event": "task_update",
+                "task_id": task_id,
+                "paper_id": paper_id,
+                "status": "processing",
+                "progress": 70,
+                "stage": "saving",
+                "stage_message": "Saving to database...",
+                "elapsed_seconds": round(time.time() - task_start, 2),
+                "stage_durations": {
+                    "fetching": fetch_duration,
+                    "parsing": parse_duration,
+                },
+            },
+        )
 
         # Stage 4 — update paper with real metadata
         paper = db.execute(
@@ -110,27 +167,144 @@ def import_arxiv_paper(
             paper.published_at = published_at
             db.commit()
 
-        update_task(db, task_id, "processing", 90, "finishing", "Finalizing...")
+        # After saving to db
+        save_duration = round(time.time() - stage_start, 2)
+
+        stage_start = time.time()
+        update_task(
+            db,
+            task_id,
+            owner_id,
+            "processing",
+            90,
+            "finishing",
+            "Finalizing...",
+            stage_durations={
+                "fetching": fetch_duration,
+                "parsing": parse_duration,
+                "saving": save_duration,
+            },
+        )
+
+        publish_task_status(
+            owner_id,
+            {
+                "event": "task_update",
+                "task_id": task_id,
+                "paper_id": paper_id,
+                "status": "processing",
+                "progress": 90,
+                "stage": "finishing",
+                "stage_message": "Finalizing...",
+                "elapsed_seconds": round(time.time() - task_start, 2),
+                "stage_durations": {
+                    "fetching": fetch_duration,
+                    "parsing": parse_duration,
+                    "saving": save_duration,
+                },
+            },
+        )
 
         # Stage 5 — complete
+        total_duration = round(time.time() - task_start, 2)
         update_user_paper(db, user_paper_id, "completed")
-        update_task(db, task_id, "completed", 100, "completed", "Import complete")
+        update_task(
+            db,
+            task_id,
+            owner_id,
+            "completed",
+            100,
+            "completed",
+            "Import complete",
+            stage_durations={
+                "fetching": fetch_duration,
+                "parsing": parse_duration,
+                "saving": save_duration,
+                "total": total_duration,
+            },
+        )
+        publish_task_status(
+            owner_id,
+            {
+                "event": "import_completed",
+                "task_id": task_id,
+                "paper_id": paper_id,
+                "user_paper_id": user_paper_id,
+                "status": "completed",
+                "progress": 100,
+                "title": title,
+                "authors": authors,
+                "categories": categories,
+                "total_duration_seconds": total_duration,
+                "stage_durations": {
+                    "fetching": fetch_duration,
+                    "parsing": parse_duration,
+                    "saving": save_duration,
+                },
+            },
+        )
 
-        # TODO: publish WebSocket event
         # TODO: send email notification
 
         return {"status": "completed", "paper_id": paper_id, "title": title}
 
     except httpx.TimeoutException as exc:
+        is_final_retry = self.request.retries >= self.max_retries
         update_task(
-            db, task_id, "failed", 0, "failed", "Timeout fetching Arxiv", error=str(exc)
+            db,
+            task_id,
+            owner_id,
+            "failed" if is_final_retry else "processing",
+            0,
+            "retrying",
+            "Timeout — retrying...",
+            error=str(exc),
         )
-        update_user_paper(db, user_paper_id, "failed")
+        update_user_paper(
+            db, user_paper_id, "failed" if is_final_retry else "processing"
+        )
+
+        if is_final_retry:
+            publish_task_status(
+                owner_id,
+                {
+                    "event": "import_failed",
+                    "task_id": task_id,
+                    "paper_id": paper_id,
+                    "status": "failed",
+                    "error": "Timeout fetching from Arxiv after 3 retries",
+                },
+            )
+
         raise self.retry(exc=exc, countdown=2**self.request.retries * 60)
 
     except Exception as exc:
-        update_task(db, task_id, "failed", 0, "failed", str(exc), error=str(exc))
-        update_user_paper(db, user_paper_id, "failed")
+        is_final_retry = self.request.retries >= self.max_retries
+        update_task(
+            db,
+            task_id,
+            owner_id,
+            "failed" if is_final_retry else "processing",
+            0,
+            "retrying",
+            str(exc),
+            error=str(exc),
+        )
+        update_user_paper(
+            db, user_paper_id, "failed" if is_final_retry else "processing"
+        )
+
+        if is_final_retry:
+            publish_task_status(
+                owner_id,
+                {
+                    "event": "import_failed",
+                    "task_id": task_id,
+                    "paper_id": paper_id,
+                    "status": "failed",
+                    "error": str(exc),
+                },
+            )
         raise self.retry(exc=exc)
 
     finally:
