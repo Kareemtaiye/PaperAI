@@ -1,6 +1,6 @@
 import json
 
-import redis
+import redis.asyncio as redis
 
 from app.core.config import settings
 
@@ -15,6 +15,8 @@ class PubSubManager:
         await self.redis_client.publish(f"user:{user_id}", json.dumps(data))
 
     async def subscribe(self, user_id: str):
+        channel = f"user:{user_id}"
+        print(f"SUBSCRIBING TO CHANNEL: {channel}")
         pubsub_obj = self.redis_client.pubsub()
         await pubsub_obj.subscribe(f"user:{user_id}")
         try:
@@ -24,6 +26,9 @@ class PubSubManager:
         finally:
             await pubsub_obj.unsubscribe(f"user:{user_id}")
             await pubsub_obj.close()
+
+    async def close(self):
+        await self.redis_client.aclose()
 
 
 pubsub_manager = PubSubManager()
