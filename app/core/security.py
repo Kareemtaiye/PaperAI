@@ -3,6 +3,7 @@ import hashlib
 import secrets
 
 from fastapi.security import OAuth2PasswordBearer
+from jwt import algorithms
 from pwdlib import PasswordHash
 import jwt
 from app.core.config import settings
@@ -22,14 +23,18 @@ def verify_password(password: str, hash: str):
     return password_hash.verify(password, hash)
 
 
-def generate_access_token(data: str):
+def generate_access_token(user_id: str):
     expiry_time = datetime.now(timezone.utc) + timedelta(
         minutes=settings.access_token_expire_minutes
     )
 
-    payload = {"sub": data, "exp": expiry_time}
+    payload = {
+        "sub": str(user_id),
+        "exp": int(expiry_time.timestamp()),
+        "type": "access",
+    }
 
-    return jwt.encode({"sub": data}, settings.secret_key, algorithm="HS256")
+    return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 
 
 def verify_jwt(token: str):
@@ -51,7 +56,7 @@ def verify_websocket_token(token: str, user_id: str):
     Returns False otherwise.
     """
 
-    payload = verify_jwt(token)
+    payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
     token_user_id = payload.get("sub")
 
     return token_user_id == user_id
