@@ -1,5 +1,7 @@
-import asyncio
+import json
+import redis
 
+from app.core.config import settings
 from datetime import datetime, timezone
 from sqlalchemy import select
 
@@ -7,9 +9,15 @@ from app.db.models.user_paper import UserPaper
 from app.db.models.task import Task
 from app.services.pubsub import pubsub_manager
 
+redis_client = redis.from_url(
+    settings.redis_url,
+    encoding="utf-8",
+    decode_responses=True,
+)
+
 
 def update_task(
-    db, task_id, status, progress, stage, stage_message, stage_durations, error=None
+    db, task_id, status, progress, stage, stage_message, stage_durations={}, error=None
 ):
     task = db.execute(select(Task).where(Task.id == task_id)).scalar_one_or_none()
     if not task:
@@ -28,7 +36,10 @@ def update_task(
 
 
 def publish_task_status(owner_id: str, payload: dict):
-    asyncio.run(pubsub_manager.publish(owner_id, payload))
+    redis_client.publish(
+        f"user:{owner_id}",
+        json.dumps(payload),
+    )
 
 
 def update_user_paper(db, user_paper_id, status):
