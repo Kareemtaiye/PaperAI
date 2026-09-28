@@ -17,14 +17,16 @@ async def websocket_endpoint(
 
     try:
         valid = verify_websocket_token(token, user_id)
+
     except ExpiredSignatureError:
         await websocket.close(code=4001, reason="Token expired")
         return
+
     except InvalidSignatureError:
         await websocket.close(code=4002, reason="Invalid token")
         return
+
     except Exception as e:
-        print(e)
         await websocket.close(code=4003, reason="Unauthorized")
         return
 
@@ -38,5 +40,4 @@ async def websocket_endpoint(
     except WebSocketDisconnect:
         pass
     except Exception as exc:
-        print(exc)
-        await websocket.close()
+        print(exc, flush=True)
