@@ -1,7 +1,5 @@
 import json
-
 import redis.asyncio as redis
-
 from app.core.config import settings
 
 
@@ -15,10 +13,9 @@ class PubSubManager:
         await self.redis_client.publish(f"user:{user_id}", json.dumps(data))
 
     async def subscribe(self, user_id: str):
-        channel = f"user:{user_id}"
-        print(f"SUBSCRIBING TO CHANNEL: {channel}")
         pubsub_obj = self.redis_client.pubsub()
         await pubsub_obj.subscribe(f"user:{user_id}")
+
         try:
             async for message in pubsub_obj.listen():
                 if message["type"] == "message":
