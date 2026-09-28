@@ -27,7 +27,6 @@ def import_arxiv_paper(
         update_task(
             db,
             task_id,
-            owner_id,
             "processing",
             10,
             "fetching",
@@ -66,7 +65,6 @@ def import_arxiv_paper(
         update_task(
             db,
             task_id,
-            owner_id,
             "processing",
             40,
             "parsing",
@@ -97,7 +95,6 @@ def import_arxiv_paper(
             update_task(
                 db,
                 task_id,
-                owner_id,
                 "failed",
                 0,
                 "failed",
@@ -128,7 +125,6 @@ def import_arxiv_paper(
         update_task(
             db,
             task_id,
-            owner_id,
             "processing",
             70,
             "saving",
@@ -174,7 +170,6 @@ def import_arxiv_paper(
         update_task(
             db,
             task_id,
-            owner_id,
             "processing",
             90,
             "finishing",
@@ -211,7 +206,6 @@ def import_arxiv_paper(
         update_task(
             db,
             task_id,
-            owner_id,
             "completed",
             100,
             "completed",
@@ -253,7 +247,6 @@ def import_arxiv_paper(
         update_task(
             db,
             task_id,
-            owner_id,
             "failed" if is_final_retry else "processing",
             0,
             "retrying",
@@ -283,7 +276,6 @@ def import_arxiv_paper(
         update_task(
             db,
             task_id,
-            owner_id,
             "failed" if is_final_retry else "processing",
             0,
             "retrying",
