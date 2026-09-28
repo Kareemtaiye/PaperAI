@@ -57,6 +57,5 @@ def verify_websocket_token(token: str, user_id: str):
     """
 
     payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
-    token_user_id = payload.get("sub")
 
-    return token_user_id == user_id
+    return payload.get("sub") == user_id
