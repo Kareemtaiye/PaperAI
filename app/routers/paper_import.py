@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
-from app.db.models.task import Task
 from app.db.session import get_db
 from app.dependencies.user import get_current_user
 from app.schemas.import_paper import ArxivImportRequest, ArxivImportResponse
