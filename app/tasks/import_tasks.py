@@ -1,6 +1,5 @@
 from datetime import datetime
 import time
-
 import httpx
 import xml.etree.ElementTree as ET
 from sqlalchemy import select
@@ -8,6 +7,7 @@ from app.tasks.celery_app import celery_app
 from app.db.session import get_sync_db
 from app.db.models.paper import Paper
 from app.tasks.helpers import publish_task_status, update_task, update_user_paper
+from app.core.logger import logger
 
 ARXIV_API = "https://export.arxiv.org/api/query"
 NAMESPACE = {"atom": "http://www.w3.org/2005/Atom"}
@@ -22,6 +22,17 @@ def import_arxiv_paper(
     db = get_sync_db()
     task_start = time.time()
     try:
+
+        # In import_arxiv_paper
+        logger.info(
+            "starting arxiv import",
+            extra={
+                "task_id": task_id,
+                "paper_id": paper_id,
+                "arxiv_id": arxiv_id,
+                "owner_id": owner_id,
+            },
+        )
         # Stage 1 — started
         stage_start = time.time()
         update_task(
@@ -240,6 +251,17 @@ def import_arxiv_paper(
 
         # TODO: send email notification
 
+        # On completion
+        logger.info(
+            "arxiv import completed",
+            extra={
+                "task_id": task_id,
+                "paper_id": paper_id,
+                "title": title,
+                "total_duration": total_duration,
+            },
+        )
+
         return {"status": "completed", "paper_id": paper_id, "title": title}
 
     except httpx.TimeoutException as exc:
@@ -298,6 +320,11 @@ def import_arxiv_paper(
                 },
             )
         raise self.retry(exc=exc)
+        # On failure
+        logger.error(
+            "arxiv import failed",
+            extra={"task_id": task_id, "paper_id": paper_id, "error": str(exc)},
+        )
 
     finally:
         db.close()

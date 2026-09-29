@@ -18,7 +18,7 @@ AsyncSessionLocal = async_sessionmaker(
 
 # Sync engine for Celery workers
 sync_engine = create_engine(
-    settings.database_url.replace("postgresql+asyncpg://", "postgresql://"),
+    settings.database_url.replace("postgresql+asyncpg://", "postgresql+psycopg2://"),
     pool_size=5,
     max_overflow=10,
 )

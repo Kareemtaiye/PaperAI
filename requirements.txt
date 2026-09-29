@@ -16,3 +16,4 @@ email-validator
 celery
 redis
 httpx
+python-json-logger
