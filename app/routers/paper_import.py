@@ -66,7 +66,12 @@ async def import_paper_arxiv(
 
     # 4
     celery_task = import_arxiv_paper.delay(
-        str(paper.id), str(user_paper.id), str(task.id), arxiv_id, str(current_user.id)
+        str(paper.id),
+        str(user_paper.id),
+        str(task.id),
+        arxiv_id,
+        str(current_user.id),
+        current_user.email,
     )
 
     # 5
