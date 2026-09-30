@@ -1,3 +1,4 @@
+from app.core.logger import logger
 from app.core.security import (
     DUMMY_HASH,
     generate_access_token,
@@ -41,7 +42,7 @@ class AuthService:
             return None
 
         if not user.is_acive:
-            # Logger warning later
+            logger.info("Non active user trying to log in", extra={"email": user.email})
             return None
 
         if not verify_password(user_data.password, user.password_hash):
