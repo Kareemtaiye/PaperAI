@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     from_email: str
     app_name: str
     debug: bool = False
+    api_url: str
+    api_url_prod: str
 
     class Config:
         env_file = ".env"
