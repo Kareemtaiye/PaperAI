@@ -17,3 +17,5 @@ celery
 redis
 httpx
 python-json-logger
+resend
+jinja2
