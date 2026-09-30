@@ -8,6 +8,7 @@ from app.db.session import get_sync_db
 from app.db.models.paper import Paper
 from app.tasks.helpers import publish_task_status, update_task, update_user_paper
 from app.core.logger import logger
+from app.tasks.email_tasks import send_import_completed_email, send_import_failed_email
 
 ARXIV_API = "https://export.arxiv.org/api/query"
 NAMESPACE = {"atom": "http://www.w3.org/2005/Atom"}
@@ -17,7 +18,13 @@ NAMESPACE = {"atom": "http://www.w3.org/2005/Atom"}
     bind=True, max_retries=3, default_retry_delay=60, name="import_arxiv_paper"
 )
 def import_arxiv_paper(
-    self, paper_id: str, user_paper_id: str, task_id: str, arxiv_id: str, owner_id: str
+    self,
+    paper_id: str,
+    user_paper_id: str,
+    task_id: str,
+    arxiv_id: str,
+    owner_id: str,
+    owner_email: str,
 ):
     db = get_sync_db()
     task_start = time.time()
@@ -249,7 +256,16 @@ def import_arxiv_paper(
             },
         )
 
-        # TODO: send email notification
+        send_import_completed_email.delay(
+            to_email=owner_email,
+            title=title,
+            authors=authors,
+            abstract=abstract,
+            published_at=str(published_at),
+            categories=categories,
+            total_duration=total_duration,
+            arxiv_id=arxiv_id,
+        )
 
         # On completion
         logger.info(
@@ -291,6 +307,10 @@ def import_arxiv_paper(
                 },
             )
 
+            send_import_failed_email.delay(
+                to_email=owner_email, arxiv_id=arxiv_id, error_message=str(exc)
+            )
+
         raise self.retry(exc=exc, countdown=2**self.request.retries * 60)
 
     except Exception as exc:
@@ -319,12 +339,16 @@ def import_arxiv_paper(
                     "error": str(exc),
                 },
             )
-        raise self.retry(exc=exc)
+
+            send_import_failed_email.delay(
+                to_email=owner_email, arxiv_id=arxiv_id, error_message=str(exc)
+            )
         # On failure
         logger.error(
             "arxiv import failed",
             extra={"task_id": task_id, "paper_id": paper_id, "error": str(exc)},
         )
+        raise self.retry(exc=exc)
 
     finally:
         db.close()
