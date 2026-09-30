@@ -1,0 +1,20 @@
+{% extends "emails/base.html" %} {% block content %}
+<p>Hi there,</p>
+<p>Unfortunately your paper import was unsuccessful after multiple attempts.</p>
+
+<span class="chip-red">✗ Import Failed</span>
+
+<div class="field">
+  <div class="field-label">Paper ID</div>
+  <div class="field-value">{{ arxiv_id }}</div>
+</div>
+
+<div class="field">
+  <div class="field-label">Reason</div>
+  <div class="field-value">{{ error_message }}</div>
+</div>
+
+<p style="margin-top: 16px; font-size: 14px; color: #6b7280">
+  This may be a temporary issue. You can try importing the paper again.
+</p>
+{% endblock %}
