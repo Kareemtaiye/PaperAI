@@ -8,6 +8,7 @@ from app.schemas.auth import LoginInput, RegisterInput, UserResponse
 from app.schemas.response import ErrorResponse
 from app.services.auth_service import AuthService
 from app.services.token_service import TokenService
+from app.tasks.email_tasks import send_welcome_email
 
 service = AuthService()
 token_service = TokenService()
@@ -19,6 +20,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 async def create_user(user: RegisterInput, db=Depends(get_db)):
     user = await service.register(db=db, user=user)
 
+    send_welcome_email.delay(user.email)
     return {"status": "success", "data": user}
 
 
