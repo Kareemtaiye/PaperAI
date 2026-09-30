@@ -1,0 +1,28 @@
+{% extends "emails/base.html" %} {% block content %}
+<p>Welcome to PaperAI.</p>
+<p>Your account is ready. Here's what you can do:</p>
+
+<div class="field">
+  <div class="field-label">Import papers</div>
+  <div class="field-value">Paste any Arxiv URL — metadata fetched automatically</div>
+</div>
+
+<div class="field">
+  <div class="field-label">AI Analysis</div>
+  <div class="field-value">
+    Get summaries, contributions, and limitations powered by Gemini
+  </div>
+</div>
+
+<div class="field">
+  <div class="field-label">Relationship mapping</div>
+  <div class="field-value">Discover how papers connect to each other</div>
+</div>
+
+<div class="field">
+  <div class="field-label">Research digest</div>
+  <div class="field-value">Get a synthesized summary of any research topic</div>
+</div>
+
+<a href="{{ api_url }}" class="btn">Get Started →</a>
+{% endblock %}
