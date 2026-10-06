@@ -36,7 +36,7 @@ def send_import_completed_email(
 
         resend.Emails.send(
             {
-                "from": settings.from_email,
+                "from": f"PaperAI { settings.from_email}",
                 "to": to_email,
                 "subject": f"Paper Ready: {title}",
                 "html": html,
@@ -61,7 +61,7 @@ def send_import_failed_email(self, to_email: str, arxiv_id: str, error_message: 
 
         resend.Emails.send(
             {
-                "from": settings.from_email,
+                "from": f"PaperAI { settings.from_email}",
                 "to": to_email,
                 "subject": "Paper Import Failed",
                 "html": html,
@@ -84,7 +84,7 @@ def send_welcome_email(self, to_email: str):
 
         resend.Emails.send(
             {
-                "from": settings.from_email,
+                "from": f"PaperAI { settings.from_email}",
                 "to": to_email,
                 "subject": "Welcome to PaperAI",
                 "html": html,
