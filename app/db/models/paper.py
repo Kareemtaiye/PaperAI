@@ -16,12 +16,20 @@ class Paper(Base):
     authors = Column(ARRAY(String), nullable=True)
     categories = Column(ARRAY(String), nullable=True)
     published_at = Column(DateTime(timezone=True), nullable=True)
-    citation_count = Column(Integer, default=0)
+    citation_count = Column(Integer, default=0, nullable=True)
     source = Column(String, nullable=False, default="arxiv")
     created_at = Column(DateTime(timezone=True), server_default=text("now()"))
     updated_at = Column(
         DateTime(timezone=True), server_default=text("now()"), onupdate=text("now()")
     )
+
+    # Semantic Scholar enrichment
+    influential_citation_count = Column(Integer, default=0, nullable=True)
+    references_count = Column(Integer, default=0, nullable=True)
+    fields_of_study = Column(ARRAY(String), nullable=True)
+    semantic_scholar_id = Column(String, nullable=True, index=True)
+    doi = Column(String, nullable=True)
+    enriched_by = Column(String, nullable=True)
 
     user_papers = relationship(
         "UserPaper", back_populates="paper", cascade="all, delete-orphan"
