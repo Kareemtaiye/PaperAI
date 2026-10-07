@@ -5,7 +5,11 @@ celery_app = Celery(
     "paperai",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.tasks.import_tasks", "app.tasks.email_tasks"],
+    include=[
+        "app.tasks.import_tasks",
+        "app.tasks.email_tasks",
+        "app.tasks.semantic_scholar_tasks",
+    ],
 )
 
 celery_app.conf.update(
