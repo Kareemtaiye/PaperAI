@@ -12,3 +12,7 @@ class ArxivImportResponse(BaseModel):
     celery_task_id: str
     status: str
     message: str
+
+
+class SemanticScholarImportRequest(BaseModel):
+    arxiv_id: str
