@@ -6,7 +6,11 @@ from sqlalchemy.exc import IntegrityError
 
 from app.db.session import get_db
 from app.dependencies.user import get_current_user
-from app.schemas.import_paper import ArxivImportRequest, ArxivImportResponse
+from app.schemas.import_paper import (
+    ArxivImportRequest,
+    ArxivImportResponse,
+    SemanticScholarImportRequest,
+)
 from app.schemas.response import ErrorResponse
 from app.services.paper_service import PaperService
 from app.services.task_service import TaskService
@@ -91,4 +95,26 @@ async def import_paper_arxiv(
                 message=f"Import queued. Poll /tasks/{task.id} for updates.",
             ).model_dump(),
         },
+    )
+
+
+@router.get("import/sematic-scholar/{arxiv_id}")
+async def import_paper_semantic_scholar(
+    body: SemanticScholarImportRequest,
+    db=Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    arxiv_id = extract_arxiv_id(body.arxiv_id)
+    if not arxiv_id:
+        raise HTTPException(
+            status_code=400,
+            detail=ErrorResponse(
+                status="error", code=400, message="Invalid Arxiv url or ID"
+            ),
+        )
+
+    arxiv_url = (
+        f"https://arxiv.org/abs/{arxiv_id}"
+        if re.match(r"^\d{4}\.\d{4,5}$", body.arxiv_url.strip())
+        else body.arxiv_url
     )
