@@ -20,6 +20,7 @@ class UserPaper(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     paper_id = Column(UUID(as_uuid=True), ForeignKey("papers.id"), nullable=False)
     status = Column(String, default="pending")
+    source = Column(String, nullable=False, default="arxiv")
     task_id = Column(String, nullable=True)
     progress = Column(Integer, default=0)
     stage = Column(String, nullable=True)
