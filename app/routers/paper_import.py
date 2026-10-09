@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
+from app.db.models import paper
 from app.db.session import get_db
 from app.dependencies.user import get_current_user
 from app.schemas.import_paper import (
@@ -98,7 +99,7 @@ async def import_paper_arxiv(
     )
 
 
-@router.get("import/sematic-scholar/{arxiv_id}")
+@router.get("/import/semantic")
 async def import_paper_semantic_scholar(
     body: SemanticScholarImportRequest,
     db=Depends(get_db),
@@ -118,3 +119,22 @@ async def import_paper_semantic_scholar(
         if re.match(r"^\d{4}\.\d{4,5}$", body.arxiv_url.strip())
         else body.arxiv_url
     )
+
+    try:
+        paper = await service.create_paper_import(
+            db=db, source_id=arxiv_id, source_url=arxiv_url, source="arxiv"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                status="error", code=500, message="Failed to create paper import"
+            ),
+        )
+
+    existing_user_paper = await user_paper_service.get_user_paper(
+        db=db, user_id=current_user.id, paper_id=paper.id
+    )
+
+    if existing_user_paper:
+        
