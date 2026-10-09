@@ -1,5 +1,13 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, Integer, UniqueConstraint, text
+from sqlalchemy import (
+    Boolean,
+    Column,
+    String,
+    DateTime,
+    Integer,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 from app.db.base import Base
